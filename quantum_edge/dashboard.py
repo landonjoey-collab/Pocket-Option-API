@@ -29,6 +29,8 @@ class Dashboard:
         self._risk: "RiskManager | None" = None
         self._status = "STARTING"
         self._exchange_name = ""
+        self._crash_regime = "normal"
+        self._crash_severity = 0.0
         self._thread: threading.Thread | None = None
         self._running = threading.Event()
 
@@ -46,6 +48,11 @@ class Dashboard:
     def set_status(self, status: str) -> None:
         with self._lock:
             self._status = status
+
+    def set_crash_state(self, regime: str, severity: float) -> None:
+        with self._lock:
+            self._crash_regime = regime
+            self._crash_severity = severity
 
     def add_log(self, msg: str) -> None:
         with self._lock:
@@ -113,6 +120,12 @@ class Dashboard:
         text.append(f"│ Balance: ${balance:,.2f}  ", style="bold white")
         text.append(f"Daily P&L: ", style="dim")
         text.append(f"${pnl:+.2f} ({pnl_pct:+.1f}%)  ", style=f"bold {pnl_color}")
+        crash_labels = {"crash": ("CRASH MODE", "bold red"),
+                        "bounce": ("BOUNCE MODE", "bold yellow"),
+                        "normal": ("", "dim")}
+        cr_label, cr_style = crash_labels.get(self._crash_regime, ("", "dim"))
+        if cr_label:
+            text.append(f"│ {cr_label} ({self._crash_severity:.0%}) ", style=cr_style)
         text.append(f"│ {now}", style="dim")
         return Panel(text, style="bold blue", box=box.HEAVY)
 

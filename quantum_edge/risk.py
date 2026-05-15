@@ -48,18 +48,26 @@ class RiskManager:
         cd = self._cooldowns.get(symbol, 0)
         return time.time() >= cd
 
-    def size_position(self, symbol: str, entry: float, df: pd.DataFrame) -> tuple[float, float, float]:
+    def size_position(
+        self, symbol: str, entry: float, df: pd.DataFrame, crash_severity: float = 0.0
+    ) -> tuple[float, float, float]:
         """
-        Returns (qty, stop_loss_price, take_profit_price).
+        Returns (qty, sl_distance, tp_distance).
         Sizes to risk ACCOUNT_RISK_PCT% of balance per trade.
+        During high crash severity, stake is reduced and stops widened
+        to account for extreme volatility.
         """
         a = atr(df, config.ATR_PERIOD).iat[-1]
         if a <= 0:
             return 0.0, 0.0, 0.0
 
-        risk_amount = self.balance * config.ACCOUNT_RISK_PCT / 100
-        sl_distance = a * config.ATR_SL_MULTIPLIER
-        tp_distance = a * config.ATR_TP_MULTIPLIER
+        # In a crash, volatility spikes — widen stops, reduce size
+        vol_scalar = 1.0 + crash_severity          # e.g. severity=0.6 → 1.6× wider stops
+        risk_scalar = 1.0 - crash_severity * 0.5   # e.g. severity=0.6 → 0.7× smaller stake
+
+        risk_amount = self.balance * config.ACCOUNT_RISK_PCT / 100 * risk_scalar
+        sl_distance = a * config.ATR_SL_MULTIPLIER * vol_scalar
+        tp_distance = a * config.ATR_TP_MULTIPLIER * vol_scalar
 
         qty = risk_amount / sl_distance
         qty = round(qty, 6)

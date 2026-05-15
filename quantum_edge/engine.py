@@ -208,6 +208,13 @@ class Engine:
                 log.debug("signal %s: %s", sym, e)
                 continue
 
+            # Broadcast crash state to dashboard using BTC as the reference asset
+            if sym in ("BTC/USDT", config.SYMBOLS[0]):
+                self._dash.set_crash_state(
+                    breakdown.get("crash_regime", "normal"),
+                    breakdown.get("crash_severity", 0.0),
+                )
+
             if signal == 0:
                 continue
 
@@ -215,7 +222,8 @@ class Engine:
 
     def _open_position(self, sym: str, signal: int, df, breakdown: dict) -> None:
         current = df["close"].iat[-1]
-        qty, sl_dist, tp_dist = self._risk.size_position(sym, current, df)
+        crash_severity = breakdown.get("crash_severity", 0.0)
+        qty, sl_dist, tp_dist = self._risk.size_position(sym, current, df, crash_severity)
 
         min_qty = self._ex.get_min_qty(sym)
         if qty < min_qty:
