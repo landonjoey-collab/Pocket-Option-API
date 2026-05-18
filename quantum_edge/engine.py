@@ -150,7 +150,8 @@ class Engine:
                 continue
 
             current = df["close"].iat[-1]
-            self._port.update_unrealized(sym, current)
+            candle_ts = df.index[-1]
+            self._port.update_unrealized(sym, current, candle_ts)
 
             # Stop-loss check
             if pos.side == "long" and current <= pos.sl:
@@ -224,6 +225,7 @@ class Engine:
         current = df["close"].iat[-1]
         crash_severity = breakdown.get("crash_severity", 0.0)
         qty, sl_dist, tp_dist = self._risk.size_position(sym, current, df, crash_severity)
+        qty = round(qty, self._ex.get_qty_precision(sym))
 
         min_qty = self._ex.get_min_qty(sym)
         if qty < min_qty:

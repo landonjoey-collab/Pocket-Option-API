@@ -24,6 +24,7 @@ class Position:
     candles_held: int = 0
     unrealized_pnl: float = 0.0
     strategies: dict = field(default_factory=dict)
+    _last_candle_ts: object = field(default=None, repr=False, compare=False)
 
 
 class Portfolio:
@@ -69,13 +70,18 @@ class Portfolio:
         with self._lock:
             return len(self._positions)
 
-    def update_unrealized(self, symbol: str, current_price: float) -> None:
+    def update_unrealized(self, symbol: str, current_price: float, candle_ts=None) -> None:
         with self._lock:
             pos = self._positions.get(symbol)
             if pos:
                 mult = 1 if pos.side == "long" else -1
                 pos.unrealized_pnl = mult * (current_price - pos.entry_price) * pos.qty
-                pos.candles_held += 1
+                if candle_ts is not None:
+                    if candle_ts != pos._last_candle_ts:
+                        pos.candles_held += 1
+                        pos._last_candle_ts = candle_ts
+                else:
+                    pos.candles_held += 1
 
     def recent_trades(self, n: int = 20) -> list[dict]:
         with self._lock:

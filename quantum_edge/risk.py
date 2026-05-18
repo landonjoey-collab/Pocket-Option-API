@@ -70,7 +70,6 @@ class RiskManager:
         tp_distance = a * config.ATR_TP_MULTIPLIER * vol_scalar
 
         qty = risk_amount / sl_distance
-        qty = round(qty, 6)
 
         return qty, sl_distance, tp_distance
 
