@@ -7,13 +7,13 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="pocketoptionapi",
+    name="tradingapi",
     version="0.1.1",
-    author="Mastaaa1987",
-    description="API for integration with PocketOption",
+    author="author",
+    description="API for integration with TradingAPI",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Mastaaa1987/PocketOptionAPI-v2",
+    url="https://github.com/author/TradingAPIAPI-v2",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

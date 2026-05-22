@@ -1,7 +1,7 @@
 import time, math, asyncio, json, threading
 from datetime import datetime
-from pocketoptionapi.stable_api import PocketOption
-import pocketoptionapi.global_value as global_value
+from tradingapi.stable_api import TradingAPI
+import tradingapi.global_value as global_value
 import talib.abstract as ta
 import numpy as np
 import pandas as pd
@@ -26,7 +26,7 @@ demo = False
 min_payout = 80
 period = 30
 expiration = 60
-api = PocketOption(ssid,demo)
+api = TradingAPI(ssid,demo)
 
 # Connect to API
 api.connect()
