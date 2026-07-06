@@ -1,5 +1,8 @@
-# Never commit real session credentials
+# Never commit real credentials
 copier_config.json
+kalshi_config.json
+*.pem
+keys/
 
 __pycache__/
 *.pyc

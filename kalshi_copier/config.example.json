@@ -1,0 +1,38 @@
+{
+  "master": {
+    "name": "Master",
+    "key_id": "PASTE_MASTER_API_KEY_ID",
+    "private_key_path": "keys/master.pem"
+  },
+  "followers": [
+    {
+      "name": "Follower 1",
+      "key_id": "PASTE_FOLLOWER1_API_KEY_ID",
+      "private_key_path": "keys/follower1.pem",
+      "multiplier": 5
+    },
+    {
+      "name": "Follower 2",
+      "key_id": "PASTE_FOLLOWER2_API_KEY_ID",
+      "private_key_path": "keys/follower2.pem",
+      "multiplier": 2,
+      "max_count": 100
+    },
+    {
+      "name": "Follower 3",
+      "key_id": "PASTE_FOLLOWER3_API_KEY_ID",
+      "private_key_path": "keys/follower3.pem",
+      "fixed_count": 1
+    }
+  ],
+  "settings": {
+    "environment": "demo",
+    "order_type": "market",
+    "limit_slippage_cents": 2,
+    "aggregation_ms": 500,
+    "copy_sells": true,
+    "tickers_allowlist": [],
+    "tickers_blocklist": [],
+    "daily_max_notional": 1000
+  }
+}
