@@ -1,0 +1,33 @@
+{
+  "master": {
+    "name": "Live Brokerage Account",
+    "ssid": "42[\"auth\",{\"session\":\"PASTE_MASTER_SESSION_HERE\",\"isDemo\":1,\"uid\":0,\"platform\":2}]"
+  },
+  "followers": [
+    {
+      "name": "Follower 1",
+      "ssid": "42[\"auth\",{\"session\":\"PASTE_FOLLOWER1_SESSION_HERE\",\"isDemo\":1,\"uid\":0,\"platform\":2}]",
+      "multiplier": 5
+    },
+    {
+      "name": "Follower 2",
+      "ssid": "42[\"auth\",{\"session\":\"PASTE_FOLLOWER2_SESSION_HERE\",\"isDemo\":1,\"uid\":0,\"platform\":2}]",
+      "multiplier": 2,
+      "max_amount": 100
+    },
+    {
+      "name": "Follower 3",
+      "ssid": "42[\"auth\",{\"session\":\"PASTE_FOLLOWER3_SESSION_HERE\",\"isDemo\":1,\"uid\":0,\"platform\":2}]",
+      "fixed_amount": 10
+    }
+  ],
+  "settings": {
+    "daily_goal": 1000,
+    "daily_loss": -1000,
+    "assets_allowlist": [],
+    "assets_blocklist": [],
+    "copy_expiration": true,
+    "default_expiration": 60,
+    "min_expiration": 5
+  }
+}

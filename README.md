@@ -7,6 +7,17 @@
 
 ![Preview of API](pocketoption.png)
 
+## 🔁 Trade Copier
+
+This repo includes a **multi-account trade copier** — one master account,
+unlimited followers, auto-copied in milliseconds with per-follower size
+multipliers and daily goal/loss guards. See [TRADE_COPIER.md](TRADE_COPIER.md).
+
+```bash
+cp trade_copier/config.example.json copier_config.json  # add your SSIDs
+python -m trade_copier --dry-run                        # then go live without --dry-run
+```
+
 ## ✨ Highlights
 
 - 🔐 **Secure Authentication**: Login via SSID and robust session management
