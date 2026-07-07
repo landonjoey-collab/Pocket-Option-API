@@ -26,6 +26,7 @@
     }
   ],
   "settings": {
+    "enabled": false,
     "environment": "demo",
     "order_type": "market",
     "limit_slippage_cents": 2,

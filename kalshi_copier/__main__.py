@@ -2,10 +2,11 @@
 
 import argparse
 import asyncio
+import os
 import sys
 
 from kalshi_copier.config import load_config
-from kalshi_copier.copier import KalshiCopier
+from kalshi_copier.copier import HALT_FILE, KalshiCopier, halt_reason
 
 
 def main():
@@ -19,7 +20,32 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="watch the master fill stream and log what would "
                              "be copied, without placing any orders")
+    parser.add_argument("--halt", action="store_true",
+                        help="emergency stop: create the KALSHI_HALT kill-switch "
+                             "file and exit; a copier running in this directory "
+                             "stops copying within a second")
+    parser.add_argument("--resume", action="store_true",
+                        help="remove the KALSHI_HALT kill-switch file so the "
+                             "copier can be started again")
     args = parser.parse_args()
+
+    if args.halt:
+        with open(HALT_FILE, "w", encoding="utf-8") as fh:
+            fh.write("Kalshi trading halted. Delete this file "
+                     "(or run `python -m kalshi_copier --resume`) to allow trading.\n")
+        print(f"halted: created {os.path.abspath(HALT_FILE)} — "
+              "no orders will be placed until it is removed")
+        return
+    if args.resume:
+        if os.path.exists(HALT_FILE):
+            os.remove(HALT_FILE)
+            print(f"resumed: removed {os.path.abspath(HALT_FILE)}")
+        else:
+            print(f"no {HALT_FILE} file here")
+        remaining = halt_reason()
+        if remaining:
+            print(f"still halted: {remaining}")
+        return
 
     try:
         config = load_config(args.config)

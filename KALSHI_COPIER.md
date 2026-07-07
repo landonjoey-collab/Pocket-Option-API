@@ -53,11 +53,30 @@ by a contract multiplier or a fixed count.
    python -m kalshi_copier --config kalshi_config.json --dry-run
    ```
 
-5. Go live (still in the demo environment until you set
-   `"environment": "prod"`):
+5. Go live — set `"enabled": true` under `settings` (without it the copier
+   always runs as a dry run), still in the demo environment until you set
+   `"environment": "prod"`:
    ```bash
    python -m kalshi_copier --config kalshi_config.json
    ```
+
+## 🛑 Stopping trading
+
+Three ways, in order of severity:
+
+1. **Ctrl+C** the running copier (or kill its process).
+2. **Kill switch** — from the copier's working directory:
+   ```bash
+   python -m kalshi_copier --halt
+   ```
+   This creates a `KALSHI_HALT` file; a running copier stops within a second
+   and refuses to restart until you run `--resume` (or delete the file).
+   Setting `KALSHI_COPIER_HALT=1` in the environment does the same. Flipping
+   `"enabled"` back to `false` in the config also blocks orders on the next
+   start.
+3. **Revoke the API keys** in each Kalshi account's Settings → API keys page.
+   This is the only step that guarantees nothing anywhere can trade the
+   account, no matter what process is still running or where.
 
 Place a trade on the master account and watch it fan out:
 
@@ -84,6 +103,7 @@ Place a trade on the master account and watch it fan out:
 ### `settings`
 | key                    | default    | description                                             |
 |------------------------|------------|---------------------------------------------------------|
+| `enabled`              | `false`    | must be `true` to place orders; otherwise forces dry-run |
 | `environment`          | `"demo"`   | `"demo"` or `"prod"`                                    |
 | `order_type`           | `"market"` | `"market"` or `"limit"` (limit pegs to master's fill price) |
 | `limit_slippage_cents` | `2`        | limit orders: allowed slippage vs. master's price        |

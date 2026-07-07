@@ -10,11 +10,27 @@ with the total count. Without this, a 0.5x follower would see three
 """
 
 import asyncio
+import os
 import time
 
 from kalshi_copier.auth import KalshiSigner
 from kalshi_copier.rest import KalshiRestClient, KalshiApiError
 from kalshi_copier.ws import KalshiFillListener
+
+HALT_FILE = "KALSHI_HALT"
+HALT_ENV = "KALSHI_COPIER_HALT"
+
+
+def halt_reason():
+    """Emergency kill switch: a KALSHI_HALT file in the working directory or
+    KALSHI_COPIER_HALT=1 in the environment stops all copying immediately.
+    Trip it with `python -m kalshi_copier --halt`."""
+    if os.environ.get(HALT_ENV):
+        return f"{HALT_ENV} is set in the environment"
+    if os.path.exists(HALT_FILE):
+        return f"{HALT_FILE} file present in {os.getcwd()}"
+    return None
+
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -27,7 +43,8 @@ RESET = "\033[0m"
 class KalshiCopier:
     def __init__(self, config, dry_run=False):
         self.config = config
-        self.dry_run = dry_run
+        self.forced_dry_run = not dry_run and not config.settings.enabled
+        self.dry_run = dry_run or self.forced_dry_run
         self.paused_reason = None
         self.copied = 0
         self._pending = {}          # order_id -> aggregated fill dict
@@ -50,10 +67,19 @@ class KalshiCopier:
     # ------------------------------------------------------------------- run
 
     async def run(self):
+        halted = halt_reason()
+        if halted:
+            self._log(f"{RED}TRADING HALTED{RESET} — {halted}; refusing to start. "
+                      "Run `python -m kalshi_copier --resume` to clear the halt.")
+            return
         self._banner()
         if self.dry_run:
             self._log(f"{YELLOW}DRY RUN{RESET} — master fills are only logged, "
                       "no follower orders will be placed")
+            if self.forced_dry_run:
+                self._log(f"{YELLOW}live copying is disabled{RESET} — set "
+                          '"enabled": true under "settings" in the config '
+                          "to place follower orders")
         else:
             for fcfg, client in self.followers:
                 balance = await asyncio.to_thread(client.get_balance)
@@ -66,7 +92,12 @@ class KalshiCopier:
                   f"{self.config.master.name} ({len(self.followers)} follower(s))")
         try:
             while True:
-                await asyncio.sleep(3600)
+                await asyncio.sleep(1)
+                halted = halt_reason()
+                if halted:
+                    self._log(f"{RED}TRADING HALTED{RESET} — {halted}; "
+                              "shutting down")
+                    break
         except asyncio.CancelledError:
             pass
         finally:
@@ -161,6 +192,9 @@ class KalshiCopier:
     # ----------------------------------------------------------------- guards
 
     def _skip_reason(self, ticker, action):
+        halted = halt_reason()
+        if halted:
+            return f"trading halted ({halted})"
         if self.paused_reason:
             return self.paused_reason
         s = self.config.settings

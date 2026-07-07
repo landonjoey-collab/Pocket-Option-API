@@ -4,6 +4,9 @@ kalshi_config.json
 *.pem
 keys/
 
+# Kill-switch file created by `python -m kalshi_copier --halt`
+KALSHI_HALT
+
 __pycache__/
 *.pyc
 .venv/
