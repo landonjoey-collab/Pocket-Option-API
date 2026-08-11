@@ -7,6 +7,26 @@
 
 ![Preview of API](pocketoption.png)
 
+## 🔁 Trade Copiers
+
+This repo includes two **multi-account trade copiers** — one master account,
+unlimited followers, auto-copied in milliseconds with per-follower size
+multipliers and risk guards:
+
+- **Kalshi** (recommended): built on Kalshi's official REST + WebSocket API,
+  with a free demo sandbox and officially supported sub-accounts.
+  See [KALSHI_COPIER.md](KALSHI_COPIER.md).
+  ```bash
+  cp kalshi_copier/config.example.json kalshi_config.json  # add your API keys
+  python -m kalshi_copier --dry-run
+  ```
+- **Pocket Option**: built on this repo's reverse-engineered websocket API.
+  See [TRADE_COPIER.md](TRADE_COPIER.md).
+  ```bash
+  cp trade_copier/config.example.json copier_config.json   # add your SSIDs
+  python -m trade_copier --dry-run
+  ```
+
 ## ✨ Highlights
 
 - 🔐 **Secure Authentication**: Login via SSID and robust session management
