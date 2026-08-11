@@ -107,12 +107,16 @@ class KalshiCopier:
         self._log(f"{CYAN}MASTER FILL{RESET}  {ticker}  "
                   f"{self._label(action, side)}  {count} @ {price_label}")
 
+        self._roll_day()
         skip = self._skip_reason(ticker, action)
         if skip:
             self._log(f"{YELLOW}not copied:{RESET} {skip}")
             return
-        if isinstance(price, (int, float)):
-            self._track_notional(count * price / 100)
+        notional = count * price / 100 if isinstance(price, (int, float)) else 0.0
+        over_cap = self._reserve_notional(notional)
+        if over_cap:
+            self._log(f"{YELLOW}not copied:{RESET} {over_cap}")
+            return
 
         if self.dry_run:
             for fcfg, _ in self.followers:
@@ -172,16 +176,31 @@ class KalshiCopier:
             return f"{ticker} is in tickers_blocklist"
         return None
 
-    def _track_notional(self, dollars):
-        if self._today() != self._day:
-            self._day = self._today()
+    def _roll_day(self):
+        """A new UTC day resets the budget and lifts a cap-induced pause."""
+        today = self._today()
+        if today != self._day:
+            self._day = today
             self._day_notional = 0.0
-        self._day_notional += dollars
+            self.paused_reason = None
+
+    def _reserve_notional(self, dollars):
+        """Books `dollars` against today's cap, or returns why it can't.
+
+        The check runs before any follower order is placed, so the trade that
+        would breach the cap is skipped rather than filled in full and paused
+        afterwards — otherwise one large master fill could overshoot the limit
+        by any amount before the guard ever engaged.
+        """
         limit = self.config.settings.daily_max_notional
-        if limit is not None and self._day_notional >= limit and not self.paused_reason:
-            self.paused_reason = (f"daily notional limit reached "
-                                  f"(${self._day_notional:,.2f} of ${limit:,.2f})")
+        if limit is not None and self._day_notional + dollars > limit:
+            self.paused_reason = (
+                f"daily notional limit reached (${self._day_notional:,.2f} of "
+                f"${limit:,.2f} used; this trade would add ${dollars:,.2f})")
             self._log(f"{YELLOW}COPYING PAUSED:{RESET} {self.paused_reason}")
+            return self.paused_reason
+        self._day_notional += dollars
+        return None
 
     # ------------------------------------------------------------------- misc
 

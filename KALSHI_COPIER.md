@@ -91,7 +91,7 @@ Place a trade on the master account and watch it fan out:
 | `copy_sells`           | `true`     | also mirror master's sell/closing fills                  |
 | `tickers_allowlist`    | `[]`       | if non-empty, only copy these markets                    |
 | `tickers_blocklist`    | `[]`       | never copy these markets                                 |
-| `daily_max_notional`   | off        | pause copying after this many $ of master fills per day  |
+| `daily_max_notional`   | off        | daily $ budget of master fills; a trade that would exceed it is skipped and copying pauses until the next UTC day |
 | `api_base` / `ws_url`  | per env    | endpoint overrides if Kalshi's URLs change               |
 
 ## Multi-account structure that's actually allowed
@@ -119,6 +119,24 @@ So the legitimate setups are:
   so latency stays roughly one API round-trip regardless of follower count.
 - If a follower's scaled size rounds to 0 contracts, that copy is skipped
   and logged rather than forced to 1.
+- **The daily cap is checked before ordering**, so the trade that would
+  breach it is skipped rather than filled and paused afterwards; a single
+  oversized fill therefore can't overshoot the budget.
+
+## Tests
+
+```bash
+pip install pytest pytest-asyncio
+python -m pytest
+```
+
+The suite runs the copier against a local stand-in for Kalshi
+(`tests/fake_kalshi.py`): a real websocket server serving the `fill` channel
+and a real HTTP server for orders, both of which verify the RSA-PSS
+signature on every request against the public half of the test key. So
+auth, the websocket subscription, fill aggregation, per-follower sizing, the
+risk guards, and the order bodies are all exercised for real — no network
+access and no Kalshi credentials required.
 
 ## ⚠️ Disclaimer
 
