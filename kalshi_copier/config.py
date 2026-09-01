@@ -35,6 +35,7 @@ class KalshiFollower(KalshiAccount):
 
 @dataclass
 class KalshiSettings:
+    enabled: bool = False               # must be true to place orders; false forces dry-run
     environment: str = "demo"           # "demo" or "prod"
     api_base: str = None                # optional URL overrides
     ws_url: str = None
@@ -92,6 +93,7 @@ def load_config(path):
         raise ValueError('order_type must be "market" or "limit"')
 
     settings = KalshiSettings(
+        enabled=bool(s.get("enabled", False)),
         environment=environment,
         api_base=s.get("api_base"),
         ws_url=s.get("ws_url"),
